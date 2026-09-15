@@ -44,7 +44,7 @@ button{font:inherit;cursor:pointer;color:inherit}
 
 .detail{padding:4px 0 28px;animation:open .18s ease-out}
 @keyframes open{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
-@media (prefers-reduced-motion:reduce){.detail{animation:none}}
+@media (prefers-reduced-motion:reduce){.detail{animation:none}.g-sign::after{transition:none}}
 .codes{display:grid;grid-template-columns:1.3fr 1fr;gap:10px;margin-bottom:22px}
 .box{border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:4px;min-width:0}
 .box.iiko{background:var(--black);color:var(--white)}
@@ -64,6 +64,23 @@ dd{margin:0;white-space:pre-line}
 .chip{background:var(--white);border-radius:999px;padding:3px 11px;font-size:14px;white-space:nowrap}
 .where{margin-top:18px;font-size:13px;color:var(--mute)}
 
+.group{border-bottom:1px solid var(--line)}
+.g-head{width:100%;display:grid;grid-template-columns:1fr auto auto;gap:4px 18px;align-items:center;background:none;border:0;padding:22px 0;text-align:left}
+.g-title{font:700 clamp(22px,4.2vw,32px)/1.15 'Unbounded',sans-serif}
+.g-sub{grid-column:1;font-size:14px;color:var(--mute)}
+.g-count{grid-row:1/span 2;grid-column:2;font-weight:600;font-size:15px;white-space:nowrap}
+.g-sign{grid-row:1/span 2;grid-column:3;width:34px;height:34px;border-radius:50%;border:2px solid var(--ink);position:relative;flex:none}
+.g-sign::before,.g-sign::after{content:"";position:absolute;left:50%;top:50%;width:14px;height:2px;background:var(--ink);transform:translate(-50%,-50%)}
+.g-sign::after{transform:translate(-50%,-50%) rotate(90deg);transition:transform .15s}
+.g-head:hover .g-title{color:var(--red)}
+.group.open .g-sign{background:var(--red);border-color:var(--red)}
+.group.open .g-sign::before,.group.open .g-sign::after{background:var(--white)}
+.group.open .g-sign::after{transform:translate(-50%,-50%) rotate(0)}
+.group.dim .g-title{color:var(--mute)}
+.g-body{border-left:3px solid var(--red);padding:0 0 8px 18px;margin-bottom:22px}
+.g-body .item:last-child{border-bottom:0}
+.g-body .row{padding:13px 0}
+.g-body .code{font-size:clamp(17px,3.2vw,20px)}
 .empty{padding:40px 0;font-size:18px}
 .empty b{font-family:'Unbounded',sans-serif}
 .gate{max-width:420px;margin:12vh auto 0}
@@ -104,7 +121,7 @@ dd{margin:0;white-space:pre-line}
   <div class="search">
     <label for="q">Промокод или название акции</label>
     <input id="q" type="search" placeholder="Хмель" autocomplete="off" autocapitalize="characters" spellcheck="false">
-    <p class="hint">Можно писать по-русски или латиницей, даже в неправильной раскладке: хмель, xmel и [vtkm найдут одно и то же.</p>
+    <p class="hint">По-русски, латиницей или в неправильной раскладке — найдётся одно и то же.</p>
   </div>
 
   <div class="count" id="count"></div>
@@ -144,6 +161,46 @@ const fmt = d => d.toLocaleDateString('ru-RU', {day:'numeric', month:'long', yea
 /* ---------- данные ---------- */
 let ROWS = [];
 let openId = null;
+const openGroups = new Set();
+
+const TRC_ORDER = ['ситимолл','остров','колумб','петровский','матрица','аура','юграмолл','гудок','летаут','сбс','северноесияние','красныйкит','июнь'];
+const TRC_CITY = {ситимолл:'Тюмень',остров:'Тюмень',колумб:'Тюмень',петровский:'Ижевск',матрица:'Ижевск',аура:'Сургут',юграмолл:'Нижневартовск',гудок:'Самара',летаут:'Самара',северноесияние:'Москва',красныйкит:'Москва',июнь:'Санкт-Петербург'};
+
+function buildGroups(rows){
+  const net = {key:'net', title:'Сеть', sub:'Действуют во всех ТРЦ', items:[]};
+  const off = {key:'off', title:'Не работают', sub:'Сняты или закончились', items:[], dim:true};
+  const none = {key:'none', title:'Без ТРЦ', sub:'ТРЦ в таблице не указан', items:[]};
+  const map = new Map();
+  rows.forEach(r => {
+    if (r.state.cls === 'off'){ off.items.push(r); return; }
+    if (/сеть/i.test(r.city)){ net.items.push(r); return; }
+    const trcs = r.trc.split(/[,;\n]+/).map(t => t.trim()).filter(Boolean);
+    if (!trcs.length){ none.items.push(r); return; }
+    trcs.forEach(t => {
+      const k = plain(t);
+      if (!map.has(k)) map.set(k, {key:'t:' + k, k, title:t, cities:new Set(), items:[]});
+      const g = map.get(k);
+      if (!g.items.includes(r)) g.items.push(r);
+      r.city.split(/[,;\n]+/).map(c => c.trim()).filter(c => c && !/сеть/i.test(c)).forEach(c => g.cities.add(c));
+    });
+  });
+  const pos = k => { const i = TRC_ORDER.indexOf(k); return i < 0 ? 99 : i; };
+  const trc = [...map.values()].sort((a, b) => pos(a.k) - pos(b.k) || a.title.localeCompare(b.title, 'ru'));
+  trc.forEach(g => g.sub = TRC_CITY[g.k] || [...g.cities].join(', '));
+  return [net, ...trc, none, off].filter(g => g.items.length);
+}
+
+const plural = (n, one, few, many) => { const a = n % 10, b = n % 100; return n + ' ' + (a === 1 && b !== 11 ? one : a >= 2 && a <= 4 && (b < 12 || b > 14) ? few : many); };
+
+function itemHtml(r, key){
+  const open = key === openId;
+  return '<div class="item' + (r.state.cls === 'off' ? ' is-off' : '') + '">' +
+    '<button class="row" data-id="' + esc(key) + '" aria-expanded="' + open + '">' +
+      '<span class="code">' + esc(r.iiko || r.guest || '—') + '</span>' +
+      '<span class="pill ' + r.state.cls + '">' + esc(r.state.text) + '</span>' +
+      '<span class="sub">' + esc([r.guest && r.guest !== r.iiko ? r.guest : '', r.name].filter(Boolean).join(': ')) + '</span>' +
+    '</button>' + (open ? detail(r) : '') + '</div>';
+}
 
 function buildRows(payload){
   const out = [];
@@ -217,8 +274,22 @@ function render(){
   const q = $('q').value.trim();
   let list;
   if (!plain(q)){
-    list = ROWS.slice();
-    $('count').textContent = 'Все промокоды в таблице: ' + list.length;
+    const groups = buildGroups(ROWS);
+    const offCount = ROWS.filter(r => r.state.cls === 'off').length;
+    $('count').textContent = 'Работают: ' + (ROWS.length - offCount) + ', не работают: ' + offCount;
+    $('list').innerHTML = groups.map(g => {
+      const open = openGroups.has(g.key);
+      return '<section class="group' + (open ? ' open' : '') + (g.dim ? ' dim' : '') + '">' +
+        '<button class="g-head" data-group="' + esc(g.key) + '" aria-expanded="' + open + '">' +
+          '<span class="g-title">' + esc(g.title) + '</span>' +
+          '<span class="g-count">' + plural(g.items.length, 'промокод', 'промокода', 'промокодов') + '</span>' +
+          '<span class="g-sign" aria-hidden="true"></span>' +
+          '<span class="g-sub">' + esc(g.sub) + '</span>' +
+        '</button>' +
+        (open ? '<div class="g-body">' + g.items.map(r => itemHtml(r, g.key + '|' + r.id)).join('') + '</div>' : '') +
+      '</section>';
+    }).join('');
+    return;
   } else {
     list = ROWS.map(r => [r, score(r, q)]).filter(x => x[1] > 0)
       .sort((a, b) => b[1] - a[1] || (a[0].state.cls === 'off') - (b[0].state.cls === 'off'))
@@ -232,15 +303,7 @@ function render(){
     return;
   }
 
-  $('list').innerHTML = list.map(r => {
-    const open = r.id === openId;
-    return '<div class="item' + (r.state.cls === 'off' ? ' is-off' : '') + '">' +
-      '<button class="row" data-id="' + esc(r.id) + '" aria-expanded="' + open + '">' +
-        '<span class="code">' + esc(r.iiko || r.guest || '—') + '</span>' +
-        '<span class="pill ' + r.state.cls + '">' + esc(r.state.text) + '</span>' +
-        '<span class="sub">' + esc([r.guest && r.guest !== r.iiko ? r.guest : '', r.name].filter(Boolean).join(': ')) + '</span>' +
-      '</button>' + (open ? detail(r) : '') + '</div>';
-  }).join('');
+  $('list').innerHTML = list.map(r => itemHtml(r, r.id)).join('');
 }
 
 function detail(r){
@@ -283,6 +346,8 @@ $('list').addEventListener('click', e => {
     if (navigator.clipboard) navigator.clipboard.writeText(t).then(done, done); else done();
     return;
   }
+  const gh = e.target.closest('.g-head');
+  if (gh){ const k = gh.dataset.group; openGroups.has(k) ? openGroups.delete(k) : openGroups.add(k); render(); return; }
   const b = e.target.closest('.row');
   if (b){ openId = openId === b.dataset.id ? null : b.dataset.id; render(); }
 });

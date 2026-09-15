@@ -89,6 +89,10 @@ dd{margin:0;white-space:pre-line}
 .gate input{flex:1;min-width:0;font:inherit;padding:12px 14px;border:2px solid var(--ink);border-radius:12px;background:var(--white)}
 .gate button{background:var(--red);color:var(--white);border:0;border-radius:12px;padding:0 18px;font-weight:600}
 .err{color:var(--red);font-size:14px;min-height:21px;margin-top:10px}
+.loading{display:flex;align-items:center;justify-content:center;gap:14px;min-height:70vh;font:700 18px/1.2 'Unbounded',sans-serif}
+.loading .ball{width:26px;height:26px;animation:roll 1s ease-in-out infinite alternate}
+@keyframes roll{from{transform:translateX(-14px)}to{transform:translateX(14px)}}
+@media (prefers-reduced-motion:reduce){.loading .ball{animation:none}}
 .hidden{display:none!important}
 @media (max-width:600px){
   .codes{grid-template-columns:1fr}
@@ -101,6 +105,8 @@ dd{margin:0;white-space:pre-line}
 </style>
 </head>
 <body>
+
+<div id="loading" class="wrap loading"><span class="ball"></span>Загружаю акции</div>
 
 <section id="gate" class="wrap gate hidden">
   <div class="brand" style="margin-bottom:28px"><span class="ball"></span>Brooklyn Bowl</div>
@@ -363,7 +369,7 @@ async function load(key){
     if (!data.ok){ store.del(); showGate(data.error === 'key' ? 'Неверный ключ доступа' : 'Ошибка: ' + data.error); return; }
     store.set(key);
     ROWS = buildRows(data);
-    $('gate').classList.add('hidden'); $('app').classList.remove('hidden');
+    $('loading').classList.add('hidden'); $('gate').classList.add('hidden'); $('app').classList.remove('hidden');
     $('updated').textContent = 'Данные на ' + new Date(data.updated).toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit'});
     render(); $('q').focus();
   } catch(err){
@@ -372,7 +378,7 @@ async function load(key){
   }
 }
 function showGate(msg){
-  $('app').classList.add('hidden'); $('gate').classList.remove('hidden');
+  $('loading').classList.add('hidden'); $('app').classList.add('hidden'); $('gate').classList.remove('hidden');
   $('gateErr').textContent = msg; $('gateKey').focus();
 }
 

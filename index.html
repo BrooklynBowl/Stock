@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Поиск промокодов — Brooklyn Bowl</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='46' fill='%23FF2026'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600&family=Unbounded:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--red:#FF2026;--cream:#E8E5DE;--ink:#191919;--black:#000;--white:#fff;--mute:rgba(25,25,25,.58);--line:rgba(25,25,25,.16)}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--cream);color:var(--ink);font:400 16px/1.5 'Golos Text',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}
+button{font:inherit;cursor:pointer;color:inherit}
+:focus-visible{outline:3px solid var(--red);outline-offset:3px}
+.wrap{max-width:880px;margin:0 auto;padding:24px 20px 96px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:40px}
+.brand{font:700 15px/1.2 'Unbounded',sans-serif;display:flex;align-items:center;gap:10px}
+.ball{width:18px;height:18px;border-radius:50%;background:var(--red);flex:none}
+.meta{font-size:13px;color:var(--mute);display:flex;gap:14px;align-items:center;text-align:right}
+.link{background:none;border:0;padding:0;text-decoration:underline;text-underline-offset:3px;font-size:13px;color:var(--ink)}
+
+.search label{display:block;font-weight:500;margin-bottom:6px}
+.search input{width:100%;border:0;border-bottom:4px solid var(--ink);border-radius:0;background:transparent;
+  font:900 clamp(34px,8.5vw,76px)/1.1 'Unbounded',sans-serif;color:var(--red);padding:4px 0 12px;text-transform:uppercase;outline:none;-webkit-appearance:none}
+.search input::placeholder{color:rgba(25,25,25,.2)}
+.search input:focus{border-bottom-color:var(--red)}
+.hint{font-size:14px;color:var(--mute);margin:12px 0 0}
+
+.count{margin:36px 0 10px;font-size:14px;color:var(--mute)}
+.list{border-top:2px solid var(--ink)}
+.item{border-bottom:1px solid var(--line)}
+.row{width:100%;display:grid;grid-template-columns:1fr auto;gap:6px 16px;align-items:center;background:none;border:0;padding:16px 0;text-align:left}
+.row:hover .code{color:var(--red)}
+.code{font:700 clamp(20px,4vw,26px)/1.15 'Unbounded',sans-serif;word-break:break-word}
+.sub{grid-column:1;font-size:14px;color:var(--mute)}
+.pill{grid-row:1/span 2;grid-column:2;font-size:13px;font-weight:600;padding:5px 12px;border-radius:999px;white-space:nowrap}
+.pill.on{background:var(--ink);color:var(--white)}
+.pill.soon{background:var(--red);color:var(--white)}
+.pill.off{border:1.5px solid var(--ink);color:var(--ink)}
+.pill.none{border:1.5px dashed var(--mute);color:var(--mute)}
+.item.is-off .code{color:var(--mute);text-decoration:line-through;text-decoration-thickness:2px}
+
+.detail{padding:4px 0 28px;animation:open .18s ease-out}
+@keyframes open{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.detail{animation:none}}
+.codes{display:grid;grid-template-columns:1.3fr 1fr;gap:10px;margin-bottom:22px}
+.box{border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.box.iiko{background:var(--black);color:var(--white)}
+.box.guest{background:var(--white)}
+.box small{font-size:13px;opacity:.7}
+.box strong{font:900 clamp(22px,4.6vw,34px)/1.1 'Unbounded',sans-serif;word-break:break-word}
+.copy{align-self:flex-start;margin-top:8px;background:var(--red);color:var(--white);border:0;border-radius:999px;padding:6px 14px;font-size:13px;font-weight:600}
+.box.guest .copy{background:var(--ink)}
+dl{margin:0;display:grid;grid-template-columns:170px 1fr;gap:12px 20px}
+dt{color:var(--mute);font-size:14px;padding-top:2px}
+dd{margin:0;white-space:pre-line}
+.until-on{font-weight:600}
+.until-soon{font-weight:600;color:var(--red)}
+.until-off{font-weight:600;text-decoration:line-through}
+.dead{background:var(--red);color:var(--white);font:700 clamp(17px,3.4vw,22px)/1.25 'Unbounded',sans-serif;border-radius:14px;padding:14px 16px;margin-bottom:10px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{background:var(--white);border-radius:999px;padding:3px 11px;font-size:14px;white-space:nowrap}
+.where{margin-top:18px;font-size:13px;color:var(--mute)}
+
+.empty{padding:40px 0;font-size:18px}
+.empty b{font-family:'Unbounded',sans-serif}
+.gate{max-width:420px;margin:12vh auto 0}
+.gate h1{font:900 clamp(30px,7vw,48px)/1.1 'Unbounded',sans-serif;margin:0 0 20px}
+.gate form{display:flex;gap:8px}
+.gate input{flex:1;min-width:0;font:inherit;padding:12px 14px;border:2px solid var(--ink);border-radius:12px;background:var(--white)}
+.gate button{background:var(--red);color:var(--white);border:0;border-radius:12px;padding:0 18px;font-weight:600}
+.err{color:var(--red);font-size:14px;min-height:21px;margin-top:10px}
+.hidden{display:none!important}
+@media (max-width:600px){
+  .codes{grid-template-columns:1fr}
+  dl{grid-template-columns:1fr;gap:2px}
+  dd{margin-bottom:12px}
+  .row{grid-template-columns:1fr}
+  .pill{grid-row:auto;grid-column:1;justify-self:start}
+  .meta span{display:none}
+}
+</style>
+</head>
+<body>
+
+<section id="gate" class="wrap gate hidden">
+  <div class="brand" style="margin-bottom:28px"><span class="ball"></span>Brooklyn Bowl</div>
+  <h1>Поиск промокодов</h1>
+  <form id="gateForm">
+    <input id="gateKey" type="password" placeholder="Ключ доступа" autocomplete="current-password" aria-label="Ключ доступа">
+    <button type="submit">Войти</button>
+  </form>
+  <div class="err" id="gateErr"></div>
+</section>
+
+<main id="app" class="wrap hidden">
+  <header class="top">
+    <div class="brand"><span class="ball"></span>Поиск промокодов</div>
+    <div class="meta"><span id="updated"></span><button class="link" id="reload">Обновить</button></div>
+  </header>
+
+  <div class="search">
+    <label for="q">Промокод или название акции</label>
+    <input id="q" type="search" placeholder="Хмель" autocomplete="off" autocapitalize="characters" spellcheck="false">
+    <p class="hint">Можно писать по-русски или латиницей, даже в неправильной раскладке: хмель, xmel и [vtkm найдут одно и то же.</p>
+  </div>
+
+  <div class="count" id="count"></div>
+  <div class="list" id="list" aria-live="polite"></div>
+</main>
+
+<script>
+/* ===== НАСТРОЙКА: адрес развёртывания Apps Script ===== */
+const API = 'https://script.google.com/macros/s/AKfycbz26WfygyJ8oDGy7RqAK_2GZtKh9S-jtBr5kca8f96ri_kRLBHx-weLBqH22W0idLS8/exec';
+const KEY_STORE = 'bb_promo_search_key';
+
+/* ---------- утилиты ---------- */
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const store = {
+  get(){ try{ return localStorage.getItem(KEY_STORE) || '' }catch(e){ return '' } },
+  set(v){ try{ localStorage.setItem(KEY_STORE, v) }catch(e){} },
+  del(){ try{ localStorage.removeItem(KEY_STORE) }catch(e){} }
+};
+
+const TR = {а:'a',б:'b',в:'v',г:'g',д:'d',е:'e',ё:'e',ж:'zh',з:'z',и:'i',й:'y',к:'k',л:'l',м:'m',н:'n',о:'o',п:'p',р:'r',с:'s',т:'t',у:'u',ф:'f',х:'x',ц:'c',ч:'ch',ш:'sh',щ:'sch',ъ:'',ы:'y',ь:'',э:'e',ю:'yu',я:'ya'};
+const RU_KEYS = 'йцукенгшщзхъфывапролджэячсмитьбю';
+const EN_KEYS = "qwertyuiop[]asdfghjkl;'zxcvbnm,.";
+const plain = s => String(s || '').toLowerCase().replace(/ё/g,'е').replace(/[^a-zа-я0-9]/g,'');
+const latin = s => plain(s).split('').map(c => TR[c] ?? c).join('').replace(/kh|h/g,'x');
+const swapLayout = (s, from, to) => String(s).toLowerCase().split('').map(c => { const i = from.indexOf(c); return i >= 0 ? to[i] : c; }).join('');
+
+function parseDate(s){
+  const m = String(s || '').match(/(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{2,4})/);
+  if (!m) return null;
+  let y = +m[3]; if (y < 100) y += 2000;
+  const d = new Date(y, +m[2] - 1, +m[1], 23, 59, 59);
+  return isNaN(d) ? null : d;
+}
+const fmt = d => d.toLocaleDateString('ru-RU', {day:'numeric', month:'long', year:'numeric'});
+
+/* ---------- данные ---------- */
+let ROWS = [];
+let openId = null;
+
+function buildRows(payload){
+  const out = [];
+  (payload.sheets || []).forEach(sh => {
+    if (sh.error || !sh.headers) return;
+    const H = sh.headers.map(h => h.toLowerCase());
+    const find = re => H.findIndex(h => re.test(h));
+    const col = {
+      city: find(/город/), trc: find(/трц/), name: find(/назван/), format: find(/формат/),
+      guest: find(/гост/), iiko: find(/айк|iiko/), details: find(/подробн|описан/),
+      status: find(/запущ|статус/), until: find(/действ|срок|оконч|по как|до как/),
+      source: find(/источник/)
+    };
+    if (col.source < 0) col.source = find(/площадк/);
+    const used = new Set(Object.values(col).filter(i => i >= 0));
+
+    sh.rows.forEach((v, i) => {
+      const flag = sh.inactive ? sh.inactive[i] : false;
+      if (flag === 'separator') return;
+      const g = k => col[k] >= 0 ? String(v[col[k]] || '').trim() : '';
+      const r = {
+        id: sh.name + ':' + (i + 2), sheet: sh.name, line: i + 2, inactive: flag === true,
+        city: g('city'), trc: g('trc'), name: g('name'), format: g('format'),
+        guest: g('guest'), iiko: g('iiko'), details: g('details'),
+        status: g('status'), until: g('until'), source: g('source'),
+        extra: sh.headers.map((h, j) => [h, String(v[j] || '').trim()]).filter(([h, val], j) => !used.has(j) && h && val)
+      };
+      if (!r.iiko && !r.guest && !r.name) return;
+      const parts = [r.iiko, r.guest].filter(Boolean);
+      r._codes = [...new Set(parts.concat(parts.join(',').split(/[,;\/\n]+/)).map(latin).filter(Boolean))];
+      r._text = latin([r.name, r.details, r.trc, r.city, r.source].join(' '));
+      r.state = stateOf(r);
+      out.push(r);
+    });
+  });
+  return out;
+}
+
+function stateOf(r){
+  const today = new Date(); today.setHours(0,0,0,0);
+  if (r.inactive) return {cls:'off', text:'Не работает'};
+  if (r.status === 'FALSE') return {cls:'none', text:'Не запущена'};
+  if (r.status && /^(?!false$|true$).*(нет|не запущ|стоп|отключ|выключ|заверш)/i.test(r.status)) return {cls:'off', text:'Не действует'};
+  const d = parseDate(r.until);
+  if (d){
+    const days = Math.round((d - today) / 864e5);
+    if (d < new Date()) return {cls:'off', text:'Закончилась ' + d.toLocaleDateString('ru-RU'), date:d};
+    if (days <= 7) return {cls:'soon', text: days < 1 ? 'Последний день' : 'Ещё ' + days + ' дн.', date:d};
+    return {cls:'on', text:'До ' + d.toLocaleDateString('ru-RU'), date:d};
+  }
+  if (r.until) return {cls:'on', text:r.until};
+  return {cls:'none', text:'Срок не указан'};
+}
+
+/* ---------- поиск ---------- */
+function score(r, q){
+  const main = latin(q);
+  const alt = [latin(swapLayout(q, RU_KEYS, EN_KEYS)), latin(swapLayout(q, EN_KEYS, RU_KEYS))].filter(x => x && x.length >= 3 && x !== main);
+  let best = 0;
+  for (const c of r._codes){
+    if (c === main) best = Math.max(best, 100);
+    else if (c.startsWith(main)) best = Math.max(best, 70);
+    else if (main.length >= 2 && c.includes(main)) best = Math.max(best, 50);
+    for (const a of alt){ if (c === a) best = Math.max(best, 90); else if (c.startsWith(a)) best = Math.max(best, 60); }
+  }
+  if (main.length >= 3 && r._text.includes(main)) best = Math.max(best, 20);
+  return best;
+}
+
+function render(){
+  const q = $('q').value.trim();
+  let list;
+  if (!plain(q)){
+    list = ROWS.slice();
+    $('count').textContent = 'Все промокоды в таблице: ' + list.length;
+  } else {
+    list = ROWS.map(r => [r, score(r, q)]).filter(x => x[1] > 0)
+      .sort((a, b) => b[1] - a[1] || (a[0].state.cls === 'off') - (b[0].state.cls === 'off'))
+      .map(x => x[0]);
+    $('count').textContent = list.length ? 'Найдено: ' + list.length : '';
+    if (list.length && (list.length === 1 || score(list[0], q) >= 90)) openId = list[0].id;
+  }
+
+  if (!list.length){
+    $('list').innerHTML = '<div class="empty">Промокода <b>' + esc(q.toUpperCase()) + '</b> в таблице нет. Проверь написание или спроси у CRM-маркетолога, заведён ли он.</div>';
+    return;
+  }
+
+  $('list').innerHTML = list.map(r => {
+    const open = r.id === openId;
+    return '<div class="item' + (r.state.cls === 'off' ? ' is-off' : '') + '">' +
+      '<button class="row" data-id="' + esc(r.id) + '" aria-expanded="' + open + '">' +
+        '<span class="code">' + esc(r.iiko || r.guest || '—') + '</span>' +
+        '<span class="pill ' + r.state.cls + '">' + esc(r.state.text) + '</span>' +
+        '<span class="sub">' + esc([r.guest && r.guest !== r.iiko ? r.guest : '', r.name].filter(Boolean).join(': ')) + '</span>' +
+      '</button>' + (open ? detail(r) : '') + '</div>';
+  }).join('');
+}
+
+function detail(r){
+  const chips = r.trc ? '<div class="chips">' + r.trc.split(/[,;\n]+/).map(s => s.trim()).filter(Boolean).map(s => '<span class="chip">' + esc(s) + '</span>').join('') + '</div>' : '—';
+  const u = r.state.date
+    ? '<span class="until-' + r.state.cls + '">' + fmt(r.state.date) + '</span>' + (r.state.cls === 'soon' ? ' (' + esc(r.state.text.toLowerCase()) + ')' : r.state.cls === 'off' ? ' (уже не действует)' : '')
+    : esc(r.until || 'Срок не указан в таблице');
+  const rows = [
+    ['Акция', esc(r.name)],
+    ['Подробности', esc(r.details)],
+    ['Действует до', u],
+    ['Источник', esc(r.source)],
+    ['Город', esc(r.city)],
+    ['ТРЦ', chips],
+    ['Формат', esc(r.format)],
+    ['Запущена', esc(r.status === 'TRUE' ? 'Да' : r.status === 'FALSE' ? 'Нет' : r.status)],
+    ...r.extra.map(([h, v]) => [esc(h), esc(v)])
+  ].filter(x => x[1]);
+
+  return '<div class="detail">' +
+    (r.inactive ? '<div class="dead">Промокод уже не работает</div>' : '') +
+    '<div class="codes">' +
+      '<div class="box iiko"><small>Как записан в айке</small><strong>' + esc(r.iiko || 'Не указан') + '</strong>' +
+        (r.iiko ? '<button class="copy" data-copy="' + esc(r.iiko) + '">Скопировать</button>' : '') + '</div>' +
+      '<div class="box guest"><small>Говорит гость</small><strong>' + esc(r.guest || 'Не указан') + '</strong>' +
+        (r.guest ? '<button class="copy" data-copy="' + esc(r.guest) + '">Скопировать</button>' : '') + '</div>' +
+    '</div>' +
+    '<dl>' + rows.map(([k, v]) => '<dt>' + k + '</dt><dd>' + v + '</dd>').join('') + '</dl>' +
+    '<div class="where">Лист «' + esc(r.sheet) + '», строка ' + r.line + '</div>' +
+  '</div>';
+}
+
+/* ---------- события ---------- */
+$('q').addEventListener('input', () => { openId = null; render(); });
+$('list').addEventListener('click', e => {
+  const c = e.target.closest('.copy');
+  if (c){
+    const t = c.dataset.copy;
+    const done = () => { c.textContent = 'Скопировано'; setTimeout(() => c.textContent = 'Скопировать', 1500); };
+    if (navigator.clipboard) navigator.clipboard.writeText(t).then(done, done); else done();
+    return;
+  }
+  const b = e.target.closest('.row');
+  if (b){ openId = openId === b.dataset.id ? null : b.dataset.id; render(); }
+});
+$('reload').addEventListener('click', () => load(store.get()));
+$('gateForm').addEventListener('submit', e => { e.preventDefault(); load($('gateKey').value.trim()); });
+
+async function load(key){
+  if (!key){ showGate(''); return; }
+  $('updated').textContent = 'Загружаю…';
+  try{
+    const res = await fetch(API + '?key=' + encodeURIComponent(key));
+    const data = await res.json();
+    if (!data.ok){ store.del(); showGate(data.error === 'key' ? 'Неверный ключ доступа' : 'Ошибка: ' + data.error); return; }
+    store.set(key);
+    ROWS = buildRows(data);
+    $('gate').classList.add('hidden'); $('app').classList.remove('hidden');
+    $('updated').textContent = 'Данные на ' + new Date(data.updated).toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit'});
+    render(); $('q').focus();
+  } catch(err){
+    if ($('app').classList.contains('hidden')) showGate('Не удалось загрузить данные. Проверь адрес Apps Script и доступ «Все».');
+    else $('updated').textContent = 'Не удалось обновить';
+  }
+}
+function showGate(msg){
+  $('app').classList.add('hidden'); $('gate').classList.remove('hidden');
+  $('gateErr').textContent = msg; $('gateKey').focus();
+}
+
+const pre = new URLSearchParams(location.search).get('q');
+if (pre) $('q').value = pre;
+load(store.get());
+</script>
+</body>
+</html>
